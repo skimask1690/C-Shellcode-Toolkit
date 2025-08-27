@@ -120,7 +120,7 @@ HMODULE customLoadLibraryA(const char* dllNameA) {
     ldrloaddll[6] = 'd'; ldrloaddll[7] = 'D'; ldrloaddll[8] = 'l';
     ldrloaddll[9] = 'l'; ldrloaddll[10] = 0;
 
-    wchar_t buf[DLL_NAME_MAX_LENGTH];
+    wchar_t buf[17]; // aligned stack
     UNICODE_STRING ustr;
     AsciiToWideChar(dllNameA, &ustr, buf, sizeof(buf)/sizeof(buf[0]));
 
