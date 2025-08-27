@@ -1,5 +1,7 @@
 #include <windows.h>
 
+#define STRING(name, value) __attribute__((section(".text"))) static char name[] = value;
+
 // -------------------- PEB structs --------------------
 typedef struct _UNICODE_STRING {
     USHORT Length;
@@ -133,3 +135,4 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
+
