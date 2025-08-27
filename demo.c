@@ -11,7 +11,8 @@ __attribute__((section(".text"))) static char title_msg[]   = "C Shellcode Demo"
 
 __attribute__((section(".text.start")))
 int _start(void) {
-    HMODULE hUser32 = customLoadLibraryA(user32_dll);
-    MessageBoxA_t pMessageBoxA = (MessageBoxA_t)customGetProcAddress(hUser32, messageboxa);
+    HMODULE hUser32 = myLoadLibraryA(user32_dll);
+    MessageBoxA_t pMessageBoxA = (MessageBoxA_t)myGetProcAddress(hUser32, messageboxa);
     pMessageBoxA(NULL, hello_msg, title_msg, MB_OK | MB_ICONINFORMATION);
 }
+
