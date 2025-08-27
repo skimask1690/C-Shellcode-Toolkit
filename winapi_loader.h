@@ -36,7 +36,7 @@ typedef struct _PEB {
 } PEB;
 
 // -------------------- Module lookup --------------------
-HMODULE customGetModuleHandleA(const char* name) {
+HMODULE myGetModuleHandleA(const char* name) {
     PEB* peb = (PEB*)__readgsqword(0x60);
     LIST_ENTRY* head = &peb->Ldr->InMemoryOrderModuleList;
     for (LIST_ENTRY* cur = head->Flink; cur != head; cur = cur->Flink) {
@@ -53,7 +53,7 @@ HMODULE customGetModuleHandleA(const char* name) {
 }
 
 // -------------------- Function lookup --------------------
-FARPROC customGetProcAddress(HMODULE hMod, const char* fnName) {
+FARPROC myGetProcAddress(HMODULE hMod, const char* fnName) {
     BYTE* base = (BYTE*)hMod;
     IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)base;
     IMAGE_NT_HEADERS64* nt = (IMAGE_NT_HEADERS64*)(base + dos->e_lfanew);
@@ -105,7 +105,7 @@ typedef NTSTATUS(NTAPI* LdrLoadDll_t)(
     PHANDLE ModuleHandle
 );
 
-HMODULE customLoadLibraryA(const char* dllNameA) {
+HMODULE myLoadLibraryA(const char* dllNameA) {
     unsigned char stackbuf[21];
     char* ntdll_dll   = (char*)&stackbuf[0];   // 10 bytes
     char* ldrloaddll  = (char*)&stackbuf[10];  // 11 bytes
@@ -126,8 +126,8 @@ HMODULE customLoadLibraryA(const char* dllNameA) {
 
     HMODULE hModule = NULL;
 
-    HMODULE hNtdll = customGetModuleHandleA(ntdll_dll);
-    LdrLoadDll_t pLdrLoadDll = (LdrLoadDll_t)customGetProcAddress(hNtdll, ldrloaddll);
+    HMODULE hNtdll = myGetModuleHandleA(ntdll_dll);
+    LdrLoadDll_t pLdrLoadDll = (LdrLoadDll_t)myGetProcAddress(hNtdll, ldrloaddll);
 
     pLdrLoadDll(NULL, 0, &ustr, (PHANDLE)&hModule);
 
