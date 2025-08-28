@@ -14,7 +14,6 @@ output_exe = sys.argv[2]
 # Defaults
 key_length = 1
 iterations = 1
-iter_flag = False
 
 # Parse optional length (-l)
 if "-l" in sys.argv:
@@ -30,7 +29,6 @@ if "-i" in sys.argv:
     iterations = int(sys.argv[i_index + 1])
     if iterations < 1:
         iterations = 1
-    iter_flag = True
 
 with open(bin_file, "rb") as f:
     shellcode = f.read()
