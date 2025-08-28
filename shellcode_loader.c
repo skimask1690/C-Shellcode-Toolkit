@@ -24,7 +24,5 @@ int main(int argc, char *argv[]) {
     // Run shellcode
     ((void(*)())execMemory)();
 
-    // Clean up
-    VirtualFree(execMemory, 0, MEM_RELEASE);
     return 0;
 }
