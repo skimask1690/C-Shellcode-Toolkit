@@ -49,7 +49,8 @@ HMODULE myGetModuleHandleA(const char* name) {
             if ((char)ent->BaseDllName.Buffer[i] != (char)name[i])
                 break;
         }
-        if (i == len && name[i] == 0) return (HMODULE)ent->DllBase;
+        if (i == len && name[i] == 0)
+            return (HMODULE)ent->DllBase;
     }
     return NULL;
 }
