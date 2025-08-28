@@ -152,8 +152,8 @@ compile_cmd = [
     "-s", "-nostdlib", "-nostartfiles", "-ffreestanding",
     "-fno-ident", "-Wl,-subsystem,windows", "-e", "_start",
     "-Os", "-fPIC", "-fno-asynchronous-unwind-tables",
-    "-T", "linker.ld",
-    "-x", "c", "-", "-o", "-DXOR", temp_exe
+    "-T", "linker.ld", "-DXOR",
+    "-x", "c", "-", "-o", temp_exe
 ]
 
 proc = subprocess.run(compile_cmd, input=c_code.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -178,4 +178,5 @@ if proc.returncode != 0:
     sys.exit(1)
 
 print(f"Shellcode generated: {output_bin}")
+
 
