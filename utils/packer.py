@@ -152,7 +152,7 @@ compile_cmd = [
     "-s", "-nostdlib", "-nostartfiles", "-ffreestanding",
     "-fno-ident", "-Wl,-subsystem,windows", "-e", "_start",
     "-Os", "-fPIC", "-fno-asynchronous-unwind-tables",
-    "-x", "c", "-", "-o", output_exe
+    "-x", "c", "-", "-o", "-DXOR", output_exe
 ]
 
 proc = subprocess.run(compile_cmd, input=c_code.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
