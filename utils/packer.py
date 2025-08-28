@@ -151,8 +151,8 @@ compile_cmd = [
     "x86_64-w64-mingw32-gcc",
     "-s", "-nostdlib", "-nostartfiles", "-ffreestanding",
     "-fno-ident", "-Wl,-subsystem,windows", "-e", "_start",
-    "-Os", "-fPIC", "-fno-asynchronous-unwind-tables",
-    "-x", "c", "-", "-o", "-DXOR", output_exe
+    "-Os", "-fPIC", "-fno-asynchronous-unwind-tables", "-DXOR",
+    "-x", "c", "-", "-o", output_exe
 ]
 
 proc = subprocess.run(compile_cmd, input=c_code.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
