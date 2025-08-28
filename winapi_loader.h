@@ -46,7 +46,7 @@ HMODULE myGetModuleHandleA(const char* name) {
         SIZE_T len = ent->BaseDllName.Length / sizeof(WCHAR);
         SIZE_T i;
         for (i = 0; i < len; ++i) {
-            if (((char)(ent->BaseDllName.Buffer[i] | 0x20)) != (char)(name[i] | 0x20))
+            if (((char)(ent->BaseDllName.Buffer[i])) != (char)(name[i]))
                 break;
         }
         if (i == len && name[i] == 0) return (HMODULE)ent->DllBase;
@@ -135,4 +135,3 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
-
