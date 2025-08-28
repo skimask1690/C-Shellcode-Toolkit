@@ -19,8 +19,8 @@ key_length = 1
 if "-l" in sys.argv:
     l_index = sys.argv.index("-l")
     key_length = int(sys.argv[l_index + 1])
-    if key_length < 1 or key_length > 256:
-        print("Error: key length must be between 1 and 256")
+    if key_length < 1 or key_length > 2:
+        print("Error: key length must be 1 or 2")
         sys.exit(1)
     key = [random.randint(1, 255) for _ in range(key_length)]
 
