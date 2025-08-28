@@ -1,5 +1,4 @@
 #include <windows.h>
-
 #define STRING(name, value) __attribute__((section(".text"))) static char name[] = value;
 
 // -------------------- PEB structs --------------------
@@ -100,6 +99,27 @@ static void AsciiToWideChar(const char* ascii, UNICODE_STRING* ustr, wchar_t* bu
     ustr->Buffer = buf;
 }
 
+// -------------------- Optional XOR helpers --------------------
+#ifdef XOR
+
+// Compile-time random key from __TIME__ (HH:MM:SS)
+#define CT_RANDOM_KEY ( \
+    (((__TIME__[0]-'0')<<4 | (__TIME__[1]-'0')) ^ \
+     ((__TIME__[3]-'0')<<4 | (__TIME__[4]-'0')) ^ \
+     ((__TIME__[6]-'0')<<4 | (__TIME__[7]-'0'))) \
+)
+
+#define XOR_KEY(len) ((len + CT_RANDOM_KEY) & 0xFF)
+
+static void xor_decode(char* str) {
+    size_t len = 0;
+    while (str[len]) len++;
+    unsigned char key = XOR_KEY(len);
+    for (size_t i = 0; i < len; i++)
+        str[i] ^= key;
+}
+#endif
+
 // -------------------- LdrLoadDll wrapper --------------------
 typedef NTSTATUS(NTAPI* LdrLoadDll_t)(
     PWSTR PathToFile,
@@ -113,6 +133,20 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
     char* ntdll_dll   = (char*)&stackbuf[0];   // 10 bytes
     char* ldrloaddll  = (char*)&stackbuf[10];  // 11 bytes
 
+#ifdef XOR
+    ntdll_dll[0] = 'n'^XOR_KEY(9); ntdll_dll[1] = 't'^XOR_KEY(9); ntdll_dll[2] = 'd'^XOR_KEY(9);
+    ntdll_dll[3] = 'l'^XOR_KEY(9); ntdll_dll[4] = 'l'^XOR_KEY(9); ntdll_dll[5] = '.'^XOR_KEY(9);
+    ntdll_dll[6] = 'd'^XOR_KEY(9); ntdll_dll[7] = 'l'^XOR_KEY(9); ntdll_dll[8] = 'l'^XOR_KEY(9);
+    ntdll_dll[9] = 0;
+
+    ldrloaddll[0] = 'L'^XOR_KEY(10); ldrloaddll[1] = 'd'^XOR_KEY(10); ldrloaddll[2] = 'r'^XOR_KEY(10);
+    ldrloaddll[3] = 'L'^XOR_KEY(10); ldrloaddll[4] = 'o'^XOR_KEY(10); ldrloaddll[5] = 'a'^XOR_KEY(10);
+    ldrloaddll[6] = 'd'^XOR_KEY(10); ldrloaddll[7] = 'D'^XOR_KEY(10); ldrloaddll[8] = 'l'^XOR_KEY(10);
+    ldrloaddll[9] = 'l'^XOR_KEY(10); ldrloaddll[10] = 0;
+
+    xor_decode((char*)ntdll_dll);
+    xor_decode((char*)ldrloaddll);
+#else
     ntdll_dll[0] = 'n'; ntdll_dll[1] = 't'; ntdll_dll[2] = 'd';
     ntdll_dll[3] = 'l'; ntdll_dll[4] = 'l'; ntdll_dll[5] = '.';
     ntdll_dll[6] = 'd'; ntdll_dll[7] = 'l'; ntdll_dll[8] = 'l';
@@ -122,6 +156,7 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
     ldrloaddll[3] = 'L'; ldrloaddll[4] = 'o'; ldrloaddll[5] = 'a';
     ldrloaddll[6] = 'd'; ldrloaddll[7] = 'D'; ldrloaddll[8] = 'l';
     ldrloaddll[9] = 'l'; ldrloaddll[10] = 0;
+#endif
 
     wchar_t buf[17]; // aligned stack
     UNICODE_STRING ustr;
