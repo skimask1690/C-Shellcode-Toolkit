@@ -140,7 +140,6 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
     char* ldrloaddll  = (char*)&stackbuf[10];  // 11 bytes
 
 #ifdef XOR
-    
     ntdll_dll[0] = 'n'^XOR_KEY(9); ntdll_dll[1] = 't'^XOR_KEY(9); ntdll_dll[2] = 'd'^XOR_KEY(9);
     ntdll_dll[3] = 'l'^XOR_KEY(9); ntdll_dll[4] = 'l'^XOR_KEY(9); ntdll_dll[5] = '.'^XOR_KEY(9);
     ntdll_dll[6] = 'd'^XOR_KEY(9); ntdll_dll[7] = 'l'^XOR_KEY(9); ntdll_dll[8] = 'l'^XOR_KEY(9);
@@ -163,7 +162,6 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
     ldrloaddll[3] = 'L'; ldrloaddll[4] = 'o'; ldrloaddll[5] = 'a';
     ldrloaddll[6] = 'd'; ldrloaddll[7] = 'D'; ldrloaddll[8] = 'l';
     ldrloaddll[9] = 'l'; ldrloaddll[10] = 0;
-    
 #endif
 
     wchar_t buf[17]; // aligned stack
@@ -179,3 +177,4 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
+
