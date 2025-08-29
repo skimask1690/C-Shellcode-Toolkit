@@ -10,7 +10,7 @@ if len(sys.argv) < 3:
 
 bin_file = sys.argv[1]
 output_exe = sys.argv[2]
-use_xor = "-xor" in sys.argv
+use_xor = "-xor" in sys.argv or "-i" in sys.argv or "-l" in sys.argv or "-k" in sys.argv
 
 key_length = 1
 key = [random.randint(1, 255) for _ in range(key_length)]
