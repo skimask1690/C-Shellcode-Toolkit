@@ -181,8 +181,6 @@ void _start() {{
         print("objcopy failed:\n", proc.stderr.decode())
         sys.exit(1)
 
-    key_array_str = ",".join(f"0x{b:02x}" for b in key)
-
     if iterations == 1:
         print(f"[+] Shellcode generated: {output_bin} (XOR key: {key_array})")
     else:
