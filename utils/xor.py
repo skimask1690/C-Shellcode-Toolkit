@@ -47,7 +47,7 @@ else:
     fixed_key = None
 
 with open(bin_file, "rb") as f:
-    current_shellcode = f.read()  # first iteration uses original shellcode
+    current_shellcode = f.read()
 
 def xor_bytes(data: bytes, key: list[int]) -> bytes:
     return bytes(data[i] ^ key[i % len(key)] for i in range(len(data)))
@@ -191,3 +191,4 @@ void _start() {{
 
 if iterations > 1:
     print(f"[+] Shellcode generated: {output_bin}")
+
