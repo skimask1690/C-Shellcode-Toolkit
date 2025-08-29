@@ -102,19 +102,18 @@ static void AsciiToWideChar(const char* ascii, UNICODE_STRING* ustr, wchar_t* bu
 // -------------------- Optional XOR helpers --------------------
 #ifdef XOR
 
-// 32-bit rotate left
-#define ROTL32(x,n) (((x) << (n)) | ((x) >> (32-(n))))
+// 64-bit rotate left
+#define ROTL64(x,n) (((x) << (n)) | ((x) >> (64-(n))))
 
-// Compile-time pseudo-random 32-bit key
+// Compile-time pseudo-random 64-bit key
 #define XOR_KEY(len) ( \
-    ROTL32( \
-        (__TIME__[0]*2654435761UL ^ __TIME__[1]*1597334677UL ^ __TIME__[2]*402653189UL ^ __TIME__[3]*982451653UL) ^ \
-        (__TIME__[4]*32452843UL ^ __TIME__[5]*49979687UL ^ __TIME__[6]*67867967UL ^ __TIME__[7]*86028121UL) ^ \
-        (__DATE__[0]*9576890767UL ^ __DATE__[1]*982451653UL ^ __DATE__[2]*32452843UL ^ __DATE__[3]*49979687UL) ^ \
-        (__DATE__[4]*67867967UL ^ __DATE__[5]*86028121UL ^ __DATE__[6]*2654435761UL ^ __DATE__[7]*1597334677UL) ^ \
-        (__DATE__[8]*402653189UL ^ __DATE__[9]*982451653UL ^ __DATE__[10]*32452843UL) ^ \
-        (len * 0x9E3779B9UL) \
-    , 13) \
+    ROTL64( \
+        ( __TIME__[0]*11400714819323198485ULL  ^ __TIME__[1]*14029467366897019727ULL  ^ __TIME__[2]*1609587929392839161ULL   ^ __TIME__[3]*2862933555777941757ULL ) ^ \
+        ( __TIME__[4]*320203452262405973ULL   ^ __TIME__[5]*3935559000370003845ULL   ^ __TIME__[6]*6364136223846793005ULL    ^ __TIME__[7]*1442695040888963407ULL ) ^ \
+        ( __DATE__[0]*2279543859745882361ULL ^ __DATE__[1]*11400714819323198485ULL  ^ __DATE__[2]*14029467366897019727ULL  ^ __DATE__[3]*1609587929392839161ULL ) ^ \
+        ( __DATE__[4]*2862933555777941757ULL ^ __DATE__[5]*320203452262405973ULL    ^ __DATE__[6]*3935559000370003845ULL    ^ __DATE__[7]*6364136223846793005ULL ) ^ \
+        ( __DATE__[8]*1442695040888963407ULL ^ __DATE__[9]*2279543859745882361ULL   ^ __DATE__[10]*11400714819323198485ULL ) ^ \
+        ( len * 0x9E3779B97F4A7C15ULL), 29) \
 )
 
 static void xor_decode(char* str) {
