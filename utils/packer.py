@@ -5,7 +5,7 @@ import random
 
 if len(sys.argv) < 3:
     script_name = os.path.basename(sys.argv[0])
-    print(f"Usage: {script_name} <shellcode.bin> <output.exe> [-l <key_length>] [-k <key>] [-xor]")
+    print(f"Usage: {script_name} <shellcode.bin> <output.exe> [-xor] [-l <key_length>] [-k <key>]")
     sys.exit(1)
 
 bin_file = sys.argv[1]
