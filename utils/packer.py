@@ -71,8 +71,8 @@ for s in xor_c_strings_enc:
     current_offset += len(s)
 stackbuf_size = current_offset
 
-combined_array = bytes_to_c_array(b"".join(xor_c_strings_enc))
 shellcode_array = bytes_to_c_array(xor_shellcode)
+combined_array = bytes_to_c_array(b"".join(xor_c_strings_enc))
 key_array = bytes_to_c_array(key)
 
 c_code = f'''#include "winapi_loader.h"
