@@ -184,13 +184,13 @@ void _start() {{
     key_array_str = ",".join(f"0x{b:02x}" for b in key)
 
     if iterations == 1:
-        print(f"[+] Shellcode generated: {output_bin} (XOR key: {key_array_str})")
+        print(f"[+] Shellcode generated: {output_bin} (XOR key: {key_array})")
     else:
-        print(f"[+] Iteration {i+1}/{iterations} - XOR key: {key_array_str}")
+        print(f"[+] Iteration {i+1}/{iterations} - XOR key: {key_array}")
 
-    # Read the output for the next iteration
     with open(output_bin, "rb") as f:
         current_shellcode = f.read()
 
 if iterations > 1:
     print(f"[+] Shellcode generated: {output_bin}")
+
