@@ -186,11 +186,12 @@ void _start() {{
     if iterations == 1:
         print(f"[+] Shellcode generated: {output_bin} (XOR key: {key_array})")
     else:
-        print(f"[+] Iteration {i+1}/{iterations} - XOR key: {key_array}")
+        print(f"[*] Iteration {i+1}/{iterations} - XOR key: {key_array}")
 
     with open(output_bin, "rb") as f:
         current_shellcode = f.read()
 
 if iterations > 1:
     print(f"[+] Shellcode generated: {output_bin}")
+
 
