@@ -1,11 +1,11 @@
-import subprocess
-import sys
 import os
+import sys
+import subprocess
+
 
 def compile_to_shellcode(input_c, output_bin, use_xor=False):
     output_exe = "temp_compile.exe"
     
-    # GCC compile command
     compile_cmd = [
         "x86_64-w64-mingw32-gcc",
         "-s", input_c,
@@ -19,7 +19,6 @@ def compile_to_shellcode(input_c, output_bin, use_xor=False):
     if use_xor:
         compile_cmd.append("-DXOR")
     
-    # Objcopy command
     objcopy_cmd = [
         "objcopy",
         "-O", "binary",
