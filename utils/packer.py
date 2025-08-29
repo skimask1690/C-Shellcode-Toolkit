@@ -156,7 +156,7 @@ compile_cmd = [
 
 proc = subprocess.run(compile_cmd, input=c_code.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 if proc.returncode != 0:
-    print("Compilation failed:\n", proc.stderr.decode())
+    print(proc.stderr.decode())
     sys.exit(1)
 
 key_array = ",".join(f"0x{b:02x}" for b in key)
