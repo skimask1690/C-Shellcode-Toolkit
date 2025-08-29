@@ -190,6 +190,3 @@ void _start() {{
 
 if iterations > 1:
     print(f"[+] Shellcode generated: {output_bin}")
-
-
-
