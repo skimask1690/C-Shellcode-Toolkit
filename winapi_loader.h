@@ -102,17 +102,19 @@ static void AsciiToWideChar(const char* ascii, UNICODE_STRING* ustr, wchar_t* bu
 // -------------------- Optional XOR helpers --------------------
 #ifdef XOR
 
+// 32-bit rotate left
+#define ROTL32(x,n) (((x) << (n)) | ((x) >> (32-(n))))
+
+// Compile-time pseudo-random 32-bit key
 #define CT_RANDOM_KEY ( \
-    ( ((__TIME__[0] + 1) << 1)  ^ ((__TIME__[1] + 2) << 2)  ^ \
-      ((__TIME__[2] + 3) << 3)  ^ ((__TIME__[3] + 4) << 4)  ^ \
-      ((__TIME__[4] + 5) << 5)  ^ ((__TIME__[5] + 6) << 6)  ^ \
-      ((__TIME__[6] + 7) << 7)  ^ ((__TIME__[7] + 8) << 1)  ^ \
-      ((__DATE__[0] + 9) << 2)  ^ ((__DATE__[1] + 10) << 3) ^ \
-      ((__DATE__[2] + 11) << 4) ^ ((__DATE__[3] + 12) << 5) ^ \
-      ((__DATE__[4] + 13) << 6) ^ ((__DATE__[5] + 14) << 7) ^ \
-      ((__DATE__[6] + 15) << 1) ^ ((__DATE__[7] + 16) << 2) ^ \
-      ((__DATE__[8] + 17) << 3) ^ ((__DATE__[9] + 18) << 4) ^ \
-      ((__DATE__[10] + 19) << 5) ) \
+    ROTL32((__TIME__[0]*37 ^ __TIME__[1]*41 ^ __TIME__[2]*43 ^ __TIME__[3]*47 ^ \
+            __TIME__[4]*53 ^ __TIME__[5]*59 ^ __TIME__[6]*61 ^ __TIME__[7]*67 ^ \
+            __DATE__[0]*71 ^ __DATE__[1]*73 ^ __DATE__[2]*79 ^ __DATE__[3]*83 ^ \
+            __DATE__[4]*89 ^ __DATE__[5]*97 ^ __DATE__[6]*101 ^ __DATE__[7]*103 ^ \
+            __DATE__[8]*107 ^ __DATE__[9]*109 ^ __DATE__[10]*113), 5) ^ \
+    ROTL32((__TIME__[0]*__DATE__[0]*127 ^ __TIME__[1]*__DATE__[1]*131 ^ \
+            __TIME__[2]*__DATE__[2]*137 ^ __TIME__[3]*__DATE__[3]*139 ^ \
+            __TIME__[4]*__DATE__[4]*149 ^ __TIME__[5]*__DATE__[5]*151), 13) \
 )
 
 #define XOR_KEY(len) ((len + CT_RANDOM_KEY) & 0xFF)
@@ -177,3 +179,4 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
+
