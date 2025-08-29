@@ -109,12 +109,12 @@ static void AsciiToWideChar(const char* ascii, UNICODE_STRING* ustr, wchar_t* bu
      ((__TIME__[6]-'0')<<4 | (__TIME__[7]-'0'))) \
 )
 
-#define XOR_KEY(len) ((len + CT_RANDOM_KEY) & 0xFF)
+#define XOR_KEY (CT_RANDOM_KEY & 0xFF)
 
 static void xor_decode(char* str) {
     size_t len = 0;
     while (str[len]) len++;
-    unsigned char key = XOR_KEY(len);
+    unsigned char key = XOR_KEY;
     for (size_t i = 0; i < len; i++)
         str[i] ^= key;
 }
@@ -134,15 +134,15 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
     char* ldrloaddll  = (char*)&stackbuf[10];  // 11 bytes
 
 #ifdef XOR
-    ntdll_dll[0] = 'n'^XOR_KEY(9); ntdll_dll[1] = 't'^XOR_KEY(9); ntdll_dll[2] = 'd'^XOR_KEY(9);
-    ntdll_dll[3] = 'l'^XOR_KEY(9); ntdll_dll[4] = 'l'^XOR_KEY(9); ntdll_dll[5] = '.'^XOR_KEY(9);
-    ntdll_dll[6] = 'd'^XOR_KEY(9); ntdll_dll[7] = 'l'^XOR_KEY(9); ntdll_dll[8] = 'l'^XOR_KEY(9);
+    ntdll_dll[0] = 'n'^XOR_KEY; ntdll_dll[1] = 't'^XOR_KEY; ntdll_dll[2] = 'd'^XOR_KEY;
+    ntdll_dll[3] = 'l'^XOR_KEY; ntdll_dll[4] = 'l'^XOR_KEY; ntdll_dll[5] = '.'^XOR_KEY;
+    ntdll_dll[6] = 'd'^XOR_KEY; ntdll_dll[7] = 'l'^XOR_KEY; ntdll_dll[8] = 'l'^XOR_KEY;
     ntdll_dll[9] = 0;
 
-    ldrloaddll[0] = 'L'^XOR_KEY(10); ldrloaddll[1] = 'd'^XOR_KEY(10); ldrloaddll[2] = 'r'^XOR_KEY(10);
-    ldrloaddll[3] = 'L'^XOR_KEY(10); ldrloaddll[4] = 'o'^XOR_KEY(10); ldrloaddll[5] = 'a'^XOR_KEY(10);
-    ldrloaddll[6] = 'd'^XOR_KEY(10); ldrloaddll[7] = 'D'^XOR_KEY(10); ldrloaddll[8] = 'l'^XOR_KEY(10);
-    ldrloaddll[9] = 'l'^XOR_KEY(10); ldrloaddll[10] = 0;
+    ldrloaddll[0] = 'L'^XOR_KEY; ldrloaddll[1] = 'd'^XOR_KEY; ldrloaddll[2] = 'r'^XOR_KEY;
+    ldrloaddll[3] = 'L'^XOR_KEY; ldrloaddll[4] = 'o'^XOR_KEY; ldrloaddll[5] = 'a'^XOR_KEY;
+    ldrloaddll[6] = 'd'^XOR_KEY; ldrloaddll[7] = 'D'^XOR_KEY; ldrloaddll[8] = 'l'^XOR_KEY;
+    ldrloaddll[9] = 'l'^XOR_KEY; ldrloaddll[10] = 0;
 
     xor_decode((char*)ntdll_dll);
     xor_decode((char*)ldrloaddll);
@@ -171,3 +171,4 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
+
