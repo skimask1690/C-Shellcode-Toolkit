@@ -177,4 +177,3 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
-
