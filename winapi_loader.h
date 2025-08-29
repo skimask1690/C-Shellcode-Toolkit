@@ -123,6 +123,7 @@ static void xor_decode(char* str) {
     for (size_t i = 0; i < len; i++)
         str[i] ^= key;
 }
+
 #endif
 
 // -------------------- LdrLoadDll wrapper --------------------
