@@ -106,18 +106,16 @@ static void AsciiToWideChar(const char* ascii, UNICODE_STRING* ustr, wchar_t* bu
 #define ROTL32(x,n) (((x) << (n)) | ((x) >> (32-(n))))
 
 // Compile-time pseudo-random 32-bit key
-#define CT_RANDOM_KEY ( \
-    ROTL32((__TIME__[0]*37 ^ __TIME__[1]*41 ^ __TIME__[2]*43 ^ __TIME__[3]*47 ^ \
-            __TIME__[4]*53 ^ __TIME__[5]*59 ^ __TIME__[6]*61 ^ __TIME__[7]*67 ^ \
-            __DATE__[0]*71 ^ __DATE__[1]*73 ^ __DATE__[2]*79 ^ __DATE__[3]*83 ^ \
-            __DATE__[4]*89 ^ __DATE__[5]*97 ^ __DATE__[6]*101 ^ __DATE__[7]*103 ^ \
-            __DATE__[8]*107 ^ __DATE__[9]*109 ^ __DATE__[10]*113), 5) ^ \
-    ROTL32((__TIME__[0]*__DATE__[0]*127 ^ __TIME__[1]*__DATE__[1]*131 ^ \
-            __TIME__[2]*__DATE__[2]*137 ^ __TIME__[3]*__DATE__[3]*139 ^ \
-            __TIME__[4]*__DATE__[4]*149 ^ __TIME__[5]*__DATE__[5]*151), 13) \
+#define XOR_KEY(len) ( \
+    ROTL32( \
+        (__TIME__[0]*2654435761UL ^ __TIME__[1]*1597334677UL ^ __TIME__[2]*402653189UL ^ __TIME__[3]*982451653UL) ^ \
+        (__TIME__[4]*32452843UL ^ __TIME__[5]*49979687UL ^ __TIME__[6]*67867967UL ^ __TIME__[7]*86028121UL) ^ \
+        (__DATE__[0]*9576890767UL ^ __DATE__[1]*982451653UL ^ __DATE__[2]*32452843UL ^ __DATE__[3]*49979687UL) ^ \
+        (__DATE__[4]*67867967UL ^ __DATE__[5]*86028121UL ^ __DATE__[6]*2654435761UL ^ __DATE__[7]*1597334677UL) ^ \
+        (__DATE__[8]*402653189UL ^ __DATE__[9]*982451653UL ^ __DATE__[10]*32452843UL) ^ \
+        (len * 0x9E3779B9UL) \
+    , 13) \
 )
-
-#define XOR_KEY(len) (CT_RANDOM_KEY ^ ROTL32((len * 2654435761UL), 7))
 
 static void xor_decode(char* str) {
     size_t len = 0;
@@ -179,4 +177,3 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
-
