@@ -117,7 +117,7 @@ static void AsciiToWideChar(const char* ascii, UNICODE_STRING* ustr, wchar_t* bu
             __TIME__[4]*__DATE__[4]*149 ^ __TIME__[5]*__DATE__[5]*151), 13) \
 )
 
-#define XOR_KEY(len) ((len + CT_RANDOM_KEY) & 0xFF)
+#define XOR_KEY(len) (len + CT_RANDOM_KEY)
 
 static void xor_decode(char* str) {
     size_t len = 0;
@@ -179,4 +179,3 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
-
