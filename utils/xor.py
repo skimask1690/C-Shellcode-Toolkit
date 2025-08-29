@@ -145,8 +145,7 @@ void _start() {{
     );
 
     ((void(*)())execMemory)();
-}
-}'''
+}}'''
 
     temp_exe = "temp_loader.exe"
     compile_cmd = [
