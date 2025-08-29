@@ -18,7 +18,7 @@ if "-l" in sys.argv:
     l_index = sys.argv.index("-l")
     key_length = int(sys.argv[l_index + 1])
     if key_length not in (1, 2):
-        print("Error: key length must be 1 or 2")
+        print("Error: key length must be 1 or 2 bytes")
         sys.exit(1)
     key = [random.randint(1, 255) for _ in range(key_length)]
 
@@ -35,7 +35,7 @@ if "-k" in sys.argv:
     else:
         key = [int(k_value)]
     if len(key) not in (1, 2):
-        print("Error: key length must be 1 or 2")
+        print("Error: key length must be 1 or 2 bytes")
         sys.exit(1)
     key_length = len(key)
 
