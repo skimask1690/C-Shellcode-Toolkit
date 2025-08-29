@@ -23,20 +23,22 @@ if "-l" in sys.argv:
     key = [random.randint(1, 255) for _ in range(key_length)]
 
 if "-k" in sys.argv:
-    k_index = sys.argv.index("-k")
-    k_value = sys.argv[k_index + 1]
+    k_value = sys.argv[sys.argv.index("-k") + 1]
+
     if "," in k_value:
-        key = [int(b, 16) if b.startswith("0x") else int(b) for b in k_value.split(",")]
-    elif k_value.startswith("0x"):
+        key = [int(b, 0) for b in k_value.split(",")]
+    elif k_value.startswith("0x") and len(k_value) > 2:
         hex_str = k_value[2:]
         if len(hex_str) % 2 != 0:
             hex_str = "0" + hex_str
         key = [int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2)]
     else:
-        key = [int(k_value)]
+        key = [int(k_value, 0)]
+
     if len(key) not in (1, 2):
         print("Error: key length must be 1 or 2 bytes")
         sys.exit(1)
+
     key_length = len(key)
 
 with open(bin_file, "rb") as f:
@@ -176,4 +178,5 @@ if proc.returncode != 0:
 
 key_array = ",".join(f"0x{b:02x}" for b in key)
 print(f"[+] Shellcode generated: {output_bin} (XOR key: {key_array})")
+
 
