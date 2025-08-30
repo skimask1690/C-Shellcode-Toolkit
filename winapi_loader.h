@@ -1,5 +1,8 @@
 #include <windows.h>
-#define STRING(name, value) __attribute__((section(".text"))) static char name[] = value;
+
+// -------------------- String helpers --------------------
+#define STRINGA(name, value) __attribute__((section(".text"))) static char name[] = value;
+#define STRINGW(name, value) __attribute__((section(".text"))) static wchar_t name[] = L##value;
 
 // -------------------- PEB structs --------------------
 typedef struct _UNICODE_STRING {
