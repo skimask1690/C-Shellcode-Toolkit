@@ -3,18 +3,18 @@
 #include "winapi_loader.h"
 
 // -------------------- Function pointer type --------------------
-typedef int (WINAPI* MessageBoxA_t)(HWND, LPCSTR, LPCSTR, UINT);
+typedef int (WINAPI* MessageBoxW_t)(HWND, LPCWSTR, LPCWSTR, UINT);
 
 // -------------------- Strings --------------------
-STRING(user32_dll, "user32.dll")
-STRING(messageboxa, "MessageBoxA")
-STRING(hello_msg, "Hello from shellcode!")
-STRING(title_msg, "C Shellcode Demo")
+STRINGA(user32_dll, "user32.dll")
+STRINGA(messageboxw, "MessageBoxW")
+STRINGW(hello_msg, "Hello from shellcode!")
+STRINGW(title_msg, "C Shellcode Demo")
 
 // -------------------- Entry point --------------------
 __attribute__((section(".text.start")))
 int _start(void) {
     HMODULE hUser32 = myLoadLibraryA(user32_dll);
-    MessageBoxA_t pMessageBoxA = (MessageBoxA_t)myGetProcAddress(hUser32, messageboxa);
-    pMessageBoxA(NULL, hello_msg, title_msg, MB_OK | MB_ICONINFORMATION);
+    MessageBoxW_t pMessageBoxW = (MessageBoxW_t)myGetProcAddress(hUser32, messageboxw);
+    pMessageBoxW(NULL, hello_msg, title_msg, MB_OK | MB_ICONINFORMATION);
 }
