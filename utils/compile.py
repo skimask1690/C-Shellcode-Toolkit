@@ -2,7 +2,6 @@ import os
 import sys
 import subprocess
 
-
 def compile_to_shellcode(input_c, output_bin, use_xor=False):
     output_exe = "temp_compile.exe"
     
