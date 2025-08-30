@@ -42,7 +42,7 @@ objcopy -O binary --only-section=.text demo.exe shellcode.bin
 
 Build the shellcode loader:
 ```bash
-x86_64-w64-mingw32-gcc shellcode_loader.c -o loader.exe
+x86_64-w64-mingw32-gcc loader.c -o loader.exe
 ```
 
 ## 🔹 Usage
@@ -58,6 +58,7 @@ This tool is provided for educational and research purposes only. The author is 
 ## 📜 License
 
 This project is released under the [MIT License](LICENSE).
+
 
 
 
