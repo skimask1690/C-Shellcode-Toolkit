@@ -1,6 +1,6 @@
 #include <windows.h>
 
-// -------------------- String helpers --------------------
+// -------------------- Optional string helpers --------------------
 #define STRINGA(name, value) __attribute__((section(".text"))) static char name[] = value;
 #define STRINGW(name, value) __attribute__((section(".text"))) static wchar_t name[] = L##value;
 
@@ -180,3 +180,4 @@ HMODULE myLoadLibraryA(const char* dllNameA) {
 
     return hModule;
 }
+
