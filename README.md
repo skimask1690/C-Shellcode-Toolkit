@@ -18,14 +18,6 @@ This project demonstrates a **minimal Windows loader** that dynamically resolves
 - Freestanding (no CRT / no standard startup files).
 - Minimal, lightweight shellcode.
 
-### Shellcode Loader
-- Loads shellcode from disk.
-- Allocates memory and sets it executable (`VirtualAlloc` / `VirtualProtect`).
-- Jumps to the entry point in memory.
-- Cleans up memory after execution.
-
----
-
 ## 🔹 Build Instructions
 
 Requires `gcc` targeting 64-bit Windows
@@ -58,6 +50,7 @@ This tool is provided for educational and research purposes only. The author is 
 ## 📜 License
 
 This project is released under the [MIT License](LICENSE).
+
 
 
 
